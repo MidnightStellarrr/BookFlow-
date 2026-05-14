@@ -92,15 +92,25 @@ public class LoginGUI extends JFrame {
         gbc.gridy = 3;
         loginPanel.add(Box.createVerticalStrut(20), gbc);
         
-        // Username Field
+        // ===== USERNAME FIELD WITH LABEL =====
         gbc.gridy = 4;
         gbc.gridwidth = 2;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.CENTER;
         
-        JPanel usernamePanel = new JPanel(new BorderLayout());
-        usernamePanel.setBackground(Color.WHITE);
-        usernamePanel.setBorder(BorderFactory.createCompoundBorder(
+        JPanel usernameContainer = new JPanel(new BorderLayout(5, 5));
+        usernameContainer.setBackground(Color.WHITE);
+        
+        // Username Label
+        JLabel usernameLabel = new JLabel("USERNAME");
+        usernameLabel.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        usernameLabel.setForeground(new Color(120, 120, 120));
+        usernameContainer.add(usernameLabel, BorderLayout.NORTH);
+        
+        // Username input panel
+        JPanel usernameInputPanel = new JPanel(new BorderLayout());
+        usernameInputPanel.setBackground(Color.WHITE);
+        usernameInputPanel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(new Color(200, 200, 200)),
             BorderFactory.createEmptyBorder(5, 10, 5, 10)
         ));
@@ -110,28 +120,39 @@ public class LoginGUI extends JFrame {
             ImageIcon usernameImg = new ImageIcon("src/images/username.png");
             Image scaledUsername = usernameImg.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
             JLabel usernameIcon = new JLabel(new ImageIcon(scaledUsername));
-            usernamePanel.add(usernameIcon, BorderLayout.WEST);
+            usernameInputPanel.add(usernameIcon, BorderLayout.WEST);
         } catch (Exception e) {
             // Fallback to text if image not found
             JLabel usernameIcon = new JLabel("👤");
             usernameIcon.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-            usernamePanel.add(usernameIcon, BorderLayout.WEST);
+            usernameInputPanel.add(usernameIcon, BorderLayout.WEST);
         }
 
         usernameField = new JTextField(15);
         usernameField.setBorder(null);
         usernameField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         usernameField.setToolTipText("Enter your username");
-        usernamePanel.add(usernameField, BorderLayout.CENTER);
+        usernameInputPanel.add(usernameField, BorderLayout.CENTER);
         
-        loginPanel.add(usernamePanel, gbc);
+        usernameContainer.add(usernameInputPanel, BorderLayout.CENTER);
+        loginPanel.add(usernameContainer, gbc);
         
-        // Password Field
+        // ===== PASSWORD FIELD WITH LABEL =====
         gbc.gridy = 5;
         
-        JPanel passwordPanel = new JPanel(new BorderLayout());
-        passwordPanel.setBackground(Color.WHITE);
-        passwordPanel.setBorder(BorderFactory.createCompoundBorder(
+        JPanel passwordContainer = new JPanel(new BorderLayout(5, 5));
+        passwordContainer.setBackground(Color.WHITE);
+        
+        // Password Label
+        JLabel passwordLabel = new JLabel("PASSWORD");
+        passwordLabel.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        passwordLabel.setForeground(new Color(120, 120, 120));
+        passwordContainer.add(passwordLabel, BorderLayout.NORTH);
+        
+        // Password input panel
+        JPanel passwordInputPanel = new JPanel(new BorderLayout());
+        passwordInputPanel.setBackground(Color.WHITE);
+        passwordInputPanel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(new Color(200, 200, 200)),
             BorderFactory.createEmptyBorder(5, 10, 5, 10)
         ));
@@ -141,29 +162,33 @@ public class LoginGUI extends JFrame {
             ImageIcon passwordImg = new ImageIcon("src/images/password.png");
             Image scaledPassword = passwordImg.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
             JLabel passwordIcon = new JLabel(new ImageIcon(scaledPassword));
-            passwordPanel.add(passwordIcon, BorderLayout.WEST);
+            passwordInputPanel.add(passwordIcon, BorderLayout.WEST);
         } catch (Exception e) {
             // Fallback to text if image not found
             JLabel passwordIcon = new JLabel("🔒");
             passwordIcon.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-            passwordPanel.add(passwordIcon, BorderLayout.WEST);
+            passwordInputPanel.add(passwordIcon, BorderLayout.WEST);
         }
         
         passwordField = new JPasswordField(15);
         passwordField.setBorder(null);
         passwordField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         passwordField.setToolTipText("Enter your password");
-        passwordPanel.add(passwordField, BorderLayout.CENTER);
+        passwordInputPanel.add(passwordField, BorderLayout.CENTER);
         
-        loginPanel.add(passwordPanel, gbc);
+        passwordContainer.add(passwordInputPanel, BorderLayout.CENTER);
+        loginPanel.add(passwordContainer, gbc);
         
         // Forgot Password Link
         gbc.gridy = 6;
+        JPanel forgotPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        forgotPanel.setBackground(Color.WHITE);
         JLabel forgotLabel = new JLabel("Forgot Password?");
         forgotLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         forgotLabel.setForeground(new Color(100, 149, 237));
         forgotLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        loginPanel.add(forgotLabel, gbc);
+        forgotPanel.add(forgotLabel);
+        loginPanel.add(forgotPanel, gbc);
         
         // Login Button
         gbc.gridy = 7;
