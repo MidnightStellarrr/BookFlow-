@@ -1,6 +1,9 @@
 import javax.swing.*;
 import java.awt.*;
 import java.sql.*;
+import javax.imageio.ImageIO;
+import java.io.File;
+import java.awt.image.BufferedImage;
 
 public class LoginGUI extends JFrame {
     private JTextField usernameField;
@@ -8,61 +11,215 @@ public class LoginGUI extends JFrame {
     private User currentUser;
     
     public LoginGUI() {
-        setTitle("AVL Scheduler - Login");
-        setSize(400, 300);
+        setTitle("Arc - Login");
+        setSize(900, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        setResizable(false);
         
-        JPanel panel = new JPanel(new GridBagLayout());
+        // Set window icon
+        try {
+            ImageIcon logo = new ImageIcon("src/images/arc_logo.png");
+            setIconImage(logo.getImage());
+        } catch (Exception e) {
+            System.out.println("Logo not found");
+        }
+        
+        // Use BorderLayout with zero gaps
+        setLayout(new BorderLayout(0, 0));
+        
+        // ===== LEFT PANEL WITH HIGH QUALITY IMAGE =====
+        JPanel leftImgPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                try {
+                    BufferedImage originalImage = ImageIO.read(new File("src/images/left_img_bg.jpg"));
+                    if (originalImage != null) {
+                        Graphics2D g2d = (Graphics2D) g.create();
+                        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, 
+                                            RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, 
+                                            RenderingHints.VALUE_RENDER_QUALITY);
+                        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+                                            RenderingHints.VALUE_ANTIALIAS_ON);
+                        g2d.drawImage(originalImage, 0, 0, getWidth(), getHeight(), this);
+                        g2d.dispose();
+                    }
+                } catch (Exception e) {
+                    // Silently handle - image just won't show
+                }
+            }
+        };
+        leftImgPanel.setLayout(new BorderLayout());
+        leftImgPanel.setPreferredSize(new Dimension(400, 600));
+        
+        // ===== RIGHT PANEL WITH LOGIN FORM =====
+        JPanel loginPanel = new JPanel(new GridBagLayout());
+        loginPanel.setBackground(Color.WHITE);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
         
-        // Title
+        // App Logo/Icon at top
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.gridwidth = 2;
-        JLabel titleLabel = new JLabel("AVL Event Scheduler");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        panel.add(titleLabel, gbc);
+        gbc.anchor = GridBagConstraints.CENTER;
+        try {
+            ImageIcon appLogo = new ImageIcon("src/images/arc_logo.png");
+            Image scaledLogo = appLogo.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+            JLabel logoLabel = new JLabel(new ImageIcon(scaledLogo));
+            loginPanel.add(logoLabel, gbc);
+        } catch (Exception e) {
+            // Skip if no logo
+        }
         
-        // Username
+        // Title
         gbc.gridy = 1;
-        gbc.gridwidth = 1;
-        gbc.anchor = GridBagConstraints.EAST;
-        panel.add(new JLabel("Username:"), gbc);
+        JLabel titleLabel = new JLabel("Welcome Back!");
+        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        titleLabel.setForeground(new Color(50, 50, 50));
+        loginPanel.add(titleLabel, gbc);
         
-        gbc.gridx = 1;
-        gbc.anchor = GridBagConstraints.WEST;
-        usernameField = new JTextField(15);
-        panel.add(usernameField, gbc);
-        
-        // Password
-        gbc.gridx = 0;
+        // Subtitle
         gbc.gridy = 2;
-        panel.add(new JLabel("Password:"), gbc);
+        JLabel subtitleLabel = new JLabel("Please login to your account");
+        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        subtitleLabel.setForeground(Color.GRAY);
+        loginPanel.add(subtitleLabel, gbc);
         
-        gbc.gridx = 1;
-        passwordField = new JPasswordField(15);
-        panel.add(passwordField, gbc);
-        
-        // Buttons
+        // Spacer
         gbc.gridy = 3;
-        gbc.gridx = 0;
+        loginPanel.add(Box.createVerticalStrut(20), gbc);
+        
+        // Username Field
+        gbc.gridy = 4;
         gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.anchor = GridBagConstraints.CENTER;
         
-        JPanel buttonPanel = new JPanel(new FlowLayout());
-        JButton loginBtn = new JButton("Login");
-        JButton registerBtn = new JButton("Register");
+        JPanel usernamePanel = new JPanel(new BorderLayout());
+        usernamePanel.setBackground(Color.WHITE);
+        usernamePanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200)),
+            BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
+        
+        // Username field with image icon (with try-catch)
+        try {
+            ImageIcon usernameImg = new ImageIcon("src/images/username.png");
+            Image scaledUsername = usernameImg.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
+            JLabel usernameIcon = new JLabel(new ImageIcon(scaledUsername));
+            usernamePanel.add(usernameIcon, BorderLayout.WEST);
+        } catch (Exception e) {
+            // Fallback to text if image not found
+            JLabel usernameIcon = new JLabel("👤");
+            usernameIcon.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+            usernamePanel.add(usernameIcon, BorderLayout.WEST);
+        }
+
+        usernameField = new JTextField(15);
+        usernameField.setBorder(null);
+        usernameField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        usernameField.setToolTipText("Enter your username");
+        usernamePanel.add(usernameField, BorderLayout.CENTER);
+        
+        loginPanel.add(usernamePanel, gbc);
+        
+        // Password Field
+        gbc.gridy = 5;
+        
+        JPanel passwordPanel = new JPanel(new BorderLayout());
+        passwordPanel.setBackground(Color.WHITE);
+        passwordPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200)),
+            BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
+        
+        // Password field with image icon (with try-catch)
+        try {
+            ImageIcon passwordImg = new ImageIcon("src/images/password.png");
+            Image scaledPassword = passwordImg.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
+            JLabel passwordIcon = new JLabel(new ImageIcon(scaledPassword));
+            passwordPanel.add(passwordIcon, BorderLayout.WEST);
+        } catch (Exception e) {
+            // Fallback to text if image not found
+            JLabel passwordIcon = new JLabel("🔒");
+            passwordIcon.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+            passwordPanel.add(passwordIcon, BorderLayout.WEST);
+        }
+        
+        passwordField = new JPasswordField(15);
+        passwordField.setBorder(null);
+        passwordField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        passwordField.setToolTipText("Enter your password");
+        passwordPanel.add(passwordField, BorderLayout.CENTER);
+        
+        loginPanel.add(passwordPanel, gbc);
+        
+        // Forgot Password Link
+        gbc.gridy = 6;
+        JLabel forgotLabel = new JLabel("Forgot Password?");
+        forgotLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        forgotLabel.setForeground(new Color(100, 149, 237));
+        forgotLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        loginPanel.add(forgotLabel, gbc);
+        
+        // Login Button
+        gbc.gridy = 7;
+        gbc.insets = new Insets(20, 10, 10, 10);
+        
+        JButton loginBtn = new JButton("LOGIN");
+        loginBtn.setBackground(new Color(100, 149, 237));
+        loginBtn.setForeground(Color.WHITE);
+        loginBtn.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        loginBtn.setFocusPainted(false);
+        loginBtn.setBorderPainted(false);
+        loginBtn.setPreferredSize(new Dimension(250, 45));
+        loginBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        // Hover effect
+        loginBtn.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                loginBtn.setBackground(new Color(70, 130, 200));
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                loginBtn.setBackground(new Color(100, 149, 237));
+            }
+        });
         
         loginBtn.addActionListener(e -> login());
+        loginPanel.add(loginBtn, gbc);
+        
+        // Register Section
+        gbc.gridy = 8;
+        gbc.insets = new Insets(10, 10, 20, 10);
+        
+        JPanel registerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
+        registerPanel.setBackground(Color.WHITE);
+        
+        JLabel noAccountLabel = new JLabel("Don't have an account?");
+        noAccountLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        noAccountLabel.setForeground(Color.GRAY);
+        
+        JButton registerBtn = new JButton("Register");
+        registerBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        registerBtn.setForeground(new Color(100, 149, 237));
+        registerBtn.setBorder(null);
+        registerBtn.setBackground(Color.WHITE);
+        registerBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         registerBtn.addActionListener(e -> openRegister());
         
-        buttonPanel.add(loginBtn);
-        buttonPanel.add(registerBtn);
-        panel.add(buttonPanel, gbc);
+        registerPanel.add(noAccountLabel);
+        registerPanel.add(registerBtn);
+        loginPanel.add(registerPanel, gbc);
         
-        add(panel);
+        // Add panels to frame
+        add(leftImgPanel, BorderLayout.WEST);
+        add(loginPanel, BorderLayout.CENTER);
+        
+        // Set left panel background color while image loads
+        leftImgPanel.setBackground(new Color(100, 149, 237));
     }
     
     private void login() {
@@ -93,7 +250,7 @@ public class LoginGUI extends JFrame {
                 
                 // Open dashboard
                 new DashboardGUI(currentUser).setVisible(true);
-                dispose(); // Close login window
+                dispose();
             } else {
                 JOptionPane.showMessageDialog(this, "Invalid username or password!");
             }
