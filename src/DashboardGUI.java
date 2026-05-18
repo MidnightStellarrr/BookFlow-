@@ -88,6 +88,7 @@ public class DashboardGUI extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setBackground(CONTENT_BG);
+        try { setIconImage(loadIcon("src/images/arc_logo.png", 32, 32).getImage()); } catch (Exception ignored) {}
 
         try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); }
         catch (Exception ignored) {}
@@ -128,7 +129,7 @@ public class DashboardGUI extends JFrame {
 
         JLabel brandIcon = new JLabel();
         try {
-            ImageIcon logoIcon = new ImageIcon("src/images/white_logo.png");
+            ImageIcon logoIcon = new ImageIcon("src/images/white.png");
             Image scaledLogo = logoIcon.getImage().getScaledInstance(40, 35, Image.SCALE_SMOOTH);
             brandIcon.setIcon(new ImageIcon(scaledLogo));
         } catch (Exception e) {
@@ -570,7 +571,7 @@ public class DashboardGUI extends JFrame {
     }
 
     private void changeMonth(int delta) {
-        currentCalendarDate = currentCalendarDate.plusMonths(delta);
+        currentCalendarDate = currentCalendarDate.withDayOfMonth(1).plusMonths(delta);
         refreshCalendar();
     }
 
@@ -852,6 +853,7 @@ public class DashboardGUI extends JFrame {
         allEventsFrame.setMinimumSize(new Dimension(1080, 720));
         allEventsFrame.setLocationRelativeTo(this);
         allEventsFrame.setResizable(false);
+        try { allEventsFrame.setIconImage(loadIcon("src/images/white_logo.png", 32, 32).getImage()); } catch (Exception ignored) {}
 
         JPanel panel = new JPanel(new BorderLayout(12, 12));
         panel.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));

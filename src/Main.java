@@ -16,7 +16,7 @@ public class Main {
             System.exit(1);
         }
         
-        // Start the application
-        SwingUtilities.invokeLater(() -> new LoginGUI().setVisible(true));
+        // Start the application on the landing page
+        SwingUtilities.invokeLater(() -> new LandingGUI().setVisible(true));
     }
 }
