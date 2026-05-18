@@ -29,7 +29,7 @@ public class LoginGUI extends JFrame {
     private static final Color WHITE_FAINT  = new Color(255, 255, 255, 90);
     private static final Color ACCENT       = new Color(0xA78BFA);   // lavender
     private static final Color ACCENT_BRIGHT= new Color(0xC4B5FD);
-    private static final Color BTN_FILL     = new Color(255, 255, 255, 245);
+    private static final Color BTN_FILL     = new Color(0x7C3AED);
     private static final Color STAR_COLOR   = new Color(255, 255, 255, 200);
 
     // star field data (generated once)
@@ -37,7 +37,9 @@ public class LoginGUI extends JFrame {
 
     public LoginGUI() {
         setTitle("ARC. — Login");
-        setExtendedState(JFrame.MAXIMIZED_BOTH);          // start fullscreen
+        setSize(1080, 720);
+        setMinimumSize(new Dimension(1080, 720));
+        setResizable(false);
         setUndecorated(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -353,10 +355,9 @@ public class LoginGUI extends JFrame {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                                     RenderingHints.VALUE_ANTIALIAS_ON);
                 if (getModel().isRollover()) {
-                    // hover: subtle gradient
                     GradientPaint gp = new GradientPaint(
-                        0, 0, new Color(220,215,255),
-                        getWidth(), getHeight(), new Color(200,190,255));
+                        0, 0, new Color(0xA78BFA),
+                        getWidth(), getHeight(), new Color(0x6D28D9));
                     g2.setPaint(gp);
                 } else {
                     g2.setColor(BTN_FILL);
@@ -367,7 +368,7 @@ public class LoginGUI extends JFrame {
             }
         };
         btn.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        btn.setForeground(new Color(0x1E0A4B));
+        btn.setForeground(Color.WHITE);
         btn.setPreferredSize(new Dimension(0, 54));
         btn.setContentAreaFilled(false);
         btn.setBorderPainted(false);
@@ -377,9 +378,9 @@ public class LoginGUI extends JFrame {
         // press effect
         btn.addMouseListener(new MouseAdapter() {
             @Override public void mousePressed(MouseEvent e) {
-                btn.setForeground(new Color(0x3B1F8C)); btn.repaint(); }
+                btn.setForeground(Color.WHITE); btn.repaint(); }
             @Override public void mouseReleased(MouseEvent e) {
-                btn.setForeground(new Color(0x1E0A4B)); btn.repaint(); }
+                btn.setForeground(Color.WHITE); btn.repaint(); }
         });
         return btn;
     }

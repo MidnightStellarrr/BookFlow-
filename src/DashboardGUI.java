@@ -21,9 +21,14 @@ public class DashboardGUI extends JFrame {
     private JLabel monthYearLabel;
     private JLabel currentTimeLabel;
     private JLabel noteOfDayLabel;
+    private JLabel viewTitleLabel;
+    private JLabel eventSummaryLabel;
     private JPanel calendarPanel;
+    private JPanel mainContentPanel;
+    private JSplitPane splitPane;
     private LocalDate currentCalendarDate;
     private java.util.Map<LocalDate, List<Event>> eventsByDate;
+    private java.util.Set<LocalDate> highlightedDates;
 
     // Color palette
     private static final Color BG_TOP        = new Color(0x0A0818);
@@ -74,10 +79,12 @@ public class DashboardGUI extends JFrame {
         this.eventTree = new AVLTree<>();
         this.currentCalendarDate = LocalDate.now();
         this.eventsByDate = new HashMap<>();
+        this.highlightedDates = new HashSet<>();
 
         setTitle("ARC. - Dashboard");
-        setSize(1200, 800);
-        setMinimumSize(new Dimension(1000, 700));
+        setSize(1080, 720);
+        setMinimumSize(new Dimension(1080, 720));
+        setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setBackground(CONTENT_BG);
@@ -287,9 +294,18 @@ public class DashboardGUI extends JFrame {
 
     private void handleSidebarAction(String label) {
         switch (label) {
-            case "Dashboard"  -> refreshAll();
-            case "All Events" -> refreshEventTable();
-            case "Statistics" -> showFullStats();
+            case "Dashboard" -> {
+                if (viewTitleLabel != null) viewTitleLabel.setText("Overview");
+                refreshAll();
+            }
+            case "All Events" -> {
+                if (viewTitleLabel != null) viewTitleLabel.setText("All Events");
+                openAllEventsWindow();
+            }
+            case "Statistics" -> {
+                if (viewTitleLabel != null) viewTitleLabel.setText("Statistics");
+                showFullStats();
+            }
         }
     }
 
@@ -389,23 +405,21 @@ public class DashboardGUI extends JFrame {
         content.setOpaque(false);
         content.add(buildTopBar(), BorderLayout.NORTH);
 
-        JPanel body = new JPanel(new BorderLayout(18, 18)) {
-            @Override protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setColor(new Color(255, 255, 255, 10));
-                g2.fillRect(0, 0, getWidth(), getHeight());
-                g2.dispose();
-            }
-        };
+        JPanel body = new JPanel(new BorderLayout(18, 18));
         body.setOpaque(false);
         body.setBorder(BorderFactory.createEmptyBorder(16, 20, 20, 20));
         body.add(buildInsightRow(), BorderLayout.NORTH);
 
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, buildCalendarPanel(), buildTableCard());
-        splitPane.setDividerLocation(360);
-        splitPane.setDividerSize(10);
-        splitPane.setBorder(null);
+        JPanel rightPanel = new JPanel(new BorderLayout(14, 14));
+        rightPanel.setOpaque(false);
+        rightPanel.setBorder(BorderFactory.createEmptyBorder(0, 18, 0, 0));
+        rightPanel.add(buildViewHeader(), BorderLayout.NORTH);
+        rightPanel.add(buildTableCard(), BorderLayout.CENTER);
+
+        splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, buildCalendarPanel(), rightPanel);
+        splitPane.setDividerLocation(380);
+        splitPane.setDividerSize(14);
+        splitPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
         splitPane.setBackground(new Color(0,0,0,0));
         splitPane.setOpaque(false);
 
@@ -534,6 +548,13 @@ public class DashboardGUI extends JFrame {
             eventIndicator.setToolTipText(eventCount + " event(s)");
             cell.add(eventIndicator, BorderLayout.CENTER);
         }
+
+        if (highlightedDates.contains(date)) {
+            cell.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(ACCENT, 2, true),
+                BorderFactory.createEmptyBorder(4, 4, 4, 4)
+            ));
+        }
         
         // Add click listener to show events on selected date
         cell.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -621,6 +642,29 @@ public class DashboardGUI extends JFrame {
         row.add(buildDailyNoteCard());
         return row;
     }
+
+    private JPanel buildViewHeader() {
+        JPanel header = new JPanel(new BorderLayout(8, 0));
+        header.setOpaque(false);
+        header.setBorder(BorderFactory.createEmptyBorder(0, 0, 8, 0));
+
+        viewTitleLabel = new JLabel("All Events");
+        viewTitleLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        viewTitleLabel.setForeground(TEXT_PRIMARY);
+
+        eventSummaryLabel = new JLabel("A clean timeline of your scheduled work.");
+        eventSummaryLabel.setFont(FONT_BODY);
+        eventSummaryLabel.setForeground(TEXT_DIM);
+
+        JPanel textPanel = new JPanel(new GridLayout(2, 1, 2, 2));
+        textPanel.setOpaque(false);
+        textPanel.add(viewTitleLabel);
+        textPanel.add(eventSummaryLabel);
+
+        header.add(textPanel, BorderLayout.CENTER);
+        return header;
+    }
+
 
     private JPanel buildStatsRow() {
         JPanel row = new JPanel(new GridLayout(1, 2, 14, 0));
@@ -743,32 +787,38 @@ public class DashboardGUI extends JFrame {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
         eventTable = new JTable(tableModel);
+        eventTable.setUI(new javax.swing.plaf.basic.BasicTableUI());
         eventTable.setFont(FONT_BODY);
         eventTable.setRowHeight(36);
         eventTable.setShowGrid(false);
         eventTable.setIntercellSpacing(new Dimension(0, 0));
         eventTable.setBackground(CARD_BG);
+        eventTable.setForeground(TEXT_DIM);
         eventTable.setSelectionBackground(new Color(120, 80, 255, 90));
         eventTable.setSelectionForeground(TEXT_PRIMARY);
         eventTable.setFocusable(false);
 
         JTableHeader th = eventTable.getTableHeader();
+        th.setUI(new javax.swing.plaf.basic.BasicTableHeaderUI());
         th.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        th.setBackground(new Color(255, 255, 255, 18));
+        th.setBackground(new Color(30, 20, 70));
         th.setForeground(TEXT_PRIMARY);
+        th.setOpaque(true);
         th.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, CARD_BORDER));
         th.setReorderingAllowed(false);
-
-        eventTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-            @Override public Component getTableCellRendererComponent(
+        th.setDefaultRenderer(new DefaultTableCellRenderer() {
+            {
+                setHorizontalAlignment(SwingConstants.LEFT);
+            }
+            @Override
+            public Component getTableCellRendererComponent(
                     JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
                 super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+                setBackground(new Color(30, 20, 70));
+                setForeground(TEXT_PRIMARY);
+                setFont(new Font("Segoe UI", Font.BOLD, 12));
                 setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 12));
-                if (!isSelected) {
-                    setBackground(row % 2 == 0 ? CARD_BG : new Color(255, 255, 255, 12));
-                    setForeground(col == 1 ? TEXT_PRIMARY : TEXT_DIM);
-                }
-                setFont(col == 1 ? new Font("Segoe UI", Font.BOLD, 13) : FONT_BODY);
+                setOpaque(true);
                 return this;
             }
         });
@@ -782,6 +832,110 @@ public class DashboardGUI extends JFrame {
         scroll.getViewport().setBackground(CARD_BG);
         card.add(scroll, BorderLayout.CENTER);
         return card;
+    }
+
+    private void openAllEventsWindow() {
+        JFrame allEventsFrame = new JFrame("ARC. — All Events");
+        allEventsFrame.setSize(1080, 720);
+        allEventsFrame.setMinimumSize(new Dimension(1080, 720));
+        allEventsFrame.setLocationRelativeTo(this);
+        allEventsFrame.setResizable(false);
+
+        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
+        panel.setBackground(BG_MID);
+
+        JLabel title = new JLabel("All Scheduled Events");
+        title.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        title.setForeground(TEXT_PRIMARY);
+
+        JLabel subtitle = new JLabel("Browse every appointment and timeline in a dedicated workspace.");
+        subtitle.setFont(FONT_BODY);
+        subtitle.setForeground(TEXT_DIM);
+
+        JPanel header = new JPanel(new BorderLayout());
+        header.setOpaque(false);
+        header.add(title, BorderLayout.WEST);
+        header.add(subtitle, BorderLayout.SOUTH);
+
+        String[] columns = {"ID", "Title", "Date", "Time", "Duration", "End Time"};
+        DefaultTableModel model = new DefaultTableModel(columns, 0) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        };
+
+        for (Event event : eventTree.inorder()) {
+            model.addRow(new Object[]{
+                event.getId(),
+                event.getTitle(),
+                event.getDate().format(DATE_FORMAT),
+                event.getTime().format(TIME_FORMAT),
+                event.getDuration(),
+                event.getEndTime().format(TIME_FORMAT)
+            });
+        }
+
+        JTable allEventsTable = new JTable(model);
+        allEventsTable.setFont(FONT_BODY);
+        allEventsTable.setRowHeight(34);
+        allEventsTable.setShowGrid(false);
+        allEventsTable.setIntercellSpacing(new Dimension(0, 0));
+        allEventsTable.setBackground(new Color(24, 14, 56));
+        allEventsTable.setForeground(TEXT_PRIMARY);
+        allEventsTable.setSelectionBackground(new Color(108, 71, 255, 140));
+        allEventsTable.setSelectionForeground(Color.WHITE);
+        allEventsTable.setOpaque(true);
+
+        JTableHeader th = allEventsTable.getTableHeader();
+        th.setUI(new javax.swing.plaf.basic.BasicTableHeaderUI());
+        th.setOpaque(true);
+        th.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        th.setBackground(new Color(40, 24, 98));
+        th.setForeground(TEXT_PRIMARY);
+        th.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(255,255,255,30)));
+        th.setDefaultRenderer(new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(
+                    JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
+                super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+                setBackground(new Color(40, 24, 98));
+                setForeground(TEXT_PRIMARY);
+                setFont(new Font("Segoe UI", Font.BOLD, 12));
+                setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 12));
+                setOpaque(true);
+                return this;
+            }
+        });
+        
+        JScrollPane scrollPane = new JScrollPane(allEventsTable);
+        scrollPane.setBorder(BorderFactory.createLineBorder(new Color(255,255,255,30), 1, true));
+        scrollPane.getViewport().setBackground(new Color(24, 14, 56));
+        scrollPane.setBackground(BG_MID);
+
+        JButton closeBtn = new JButton("Close");
+        closeBtn.setFont(FONT_BODY);
+        closeBtn.setBackground(new Color(0x8B5CF6));
+        closeBtn.setForeground(Color.WHITE);
+        closeBtn.setOpaque(true);
+        closeBtn.setContentAreaFilled(true);
+        closeBtn.setBorderPainted(true);
+        closeBtn.setFocusPainted(false);
+        closeBtn.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(255,255,255,120), 1, true),
+            BorderFactory.createEmptyBorder(10, 18, 10, 18)
+        ));
+        closeBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        closeBtn.addActionListener(e -> allEventsFrame.dispose());
+
+        JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        footer.setOpaque(false);
+        footer.add(closeBtn);
+
+        panel.add(header, BorderLayout.NORTH);
+        panel.add(scrollPane, BorderLayout.CENTER);
+        panel.add(footer, BorderLayout.SOUTH);
+
+        allEventsFrame.add(panel);
+        allEventsFrame.setVisible(true);
     }
 
     private JPanel buildActionBar() {
@@ -811,52 +965,64 @@ public class DashboardGUI extends JFrame {
     // ── Button Factories ──
 
     private JButton makePrimaryButton(String text) {
-        JButton btn = new JButton(text);
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btn.setBackground(ACCENT);
-        btn.setForeground(Color.WHITE);
-        btn.setFocusPainted(false);
-        btn.setBorderPainted(false);
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btn.setBorder(BorderFactory.createEmptyBorder(9, 18, 9, 18));
-        btn.addMouseListener(new MouseAdapter() {
-            @Override public void mouseEntered(MouseEvent e) { btn.setBackground(new Color(0x6D28D9)); }
-            @Override public void mouseExited(MouseEvent e)  { btn.setBackground(ACCENT); }
-        });
-        return btn;
-    }
+    JButton btn = new JButton(text);
+    btn.setUI(new javax.swing.plaf.basic.BasicButtonUI());
+    btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+    btn.setBackground(new Color(0x7C3AED));      // vivid violet
+    btn.setForeground(Color.WHITE);
+    btn.setOpaque(true);
+    btn.setContentAreaFilled(true);
+    btn.setBorderPainted(false);
+    btn.setFocusPainted(false);
+    btn.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+    btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    btn.addMouseListener(new MouseAdapter() {
+        @Override public void mouseEntered(MouseEvent e) { btn.setBackground(new Color(0x5B21B6)); }
+        @Override public void mouseExited(MouseEvent e)  { btn.setBackground(new Color(0x7C3AED)); }
+    });
+    return btn;
+}
 
-    private JButton makeDangerButton(String text) {
-        JButton btn = new JButton(text);
-        btn.setFont(FONT_BODY);
-        btn.setBackground(new Color(0xFEE2E2));
-        btn.setForeground(DANGER);
-        btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(0xFCA5A5), 1, true),
-            BorderFactory.createEmptyBorder(8, 16, 8, 16)
-        ));
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        return btn;
-    }
+private JButton makeDangerButton(String text) {
+    JButton btn = new JButton(text);
+    btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
+    btn.setBackground(new Color(0xDC2626));      // clear red
+    btn.setForeground(Color.WHITE);
+    btn.setOpaque(true);
+    btn.setContentAreaFilled(true);
+    btn.setBorderPainted(false);
+    btn.setFocusPainted(false);
+    btn.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+    btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    btn.addMouseListener(new MouseAdapter() {
+        @Override public void mouseEntered(MouseEvent e) { btn.setBackground(new Color(0xB91C1C)); }
+        @Override public void mouseExited(MouseEvent e)  { btn.setBackground(new Color(0xDC2626)); }
+    });
+    return btn;
+}
 
-    private JButton makeSecondaryButton(String text) {
-        JButton btn = new JButton(text);
-        btn.setFont(FONT_BODY);
-        btn.setBackground(Color.WHITE);
-        btn.setForeground(TEXT_PRIMARY);
-        btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(CARD_BORDER, 1, true),
-            BorderFactory.createEmptyBorder(8, 16, 8, 16)
-        ));
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btn.addMouseListener(new MouseAdapter() {
-            @Override public void mouseEntered(MouseEvent e) { btn.setBackground(new Color(0xF5F3FF)); }
-            @Override public void mouseExited(MouseEvent e)  { btn.setBackground(Color.WHITE); }
-        });
-        return btn;
-    }
+private JButton makeSecondaryButton(String text) {
+    JButton btn = new JButton(text);
+    btn.setUI(new javax.swing.plaf.basic.BasicButtonUI());
+    btn.setUI(new javax.swing.plaf.basic.BasicButtonUI());
+    btn.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+    btn.setBackground(new Color(0x1E1B4B));
+    btn.setForeground(new Color(0xC4B5FD));
+    btn.setOpaque(true);
+    btn.setContentAreaFilled(true);
+    btn.setBorderPainted(true);
+    btn.setFocusPainted(false);
+    btn.setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createLineBorder(new Color(0x6D28D9), 1, true),
+        BorderFactory.createEmptyBorder(9, 18, 9, 18)
+    ));
+    btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    btn.addMouseListener(new MouseAdapter() {
+        @Override public void mouseEntered(MouseEvent e) { btn.setBackground(new Color(0x2E1F6E)); }
+        @Override public void mouseExited(MouseEvent e)  { btn.setBackground(new Color(0x1E1B4B)); }
+    });
+    return btn;
+}
 
     // ── Helpers ──
 
@@ -868,20 +1034,27 @@ public class DashboardGUI extends JFrame {
     }
 
     private void refreshEventTable() {
-        tableModel.setRowCount(0);
-        List<Event> events = eventTree.inorder();
-        for (Event event : events) {
-            tableModel.addRow(new Object[]{
-                event.getId(),
-                event.getTitle(),
-                event.getDate().format(DATE_FORMAT),
-                event.getTime().format(TIME_FORMAT),
-                event.getDuration(),
-                event.getEndTime().format(TIME_FORMAT)
-            });
+        if (tableModel == null || eventTable == null) return;
+        try {
+            tableModel.setRowCount(0);
+            List<Event> events = eventTree.inorder();
+            for (Event event : events) {
+                String endTime = event.getTime() != null ? event.getEndTime().format(TIME_FORMAT) : "—";
+                tableModel.addRow(new Object[]{
+                    event.getId(),
+                    event.getTitle(),
+                    event.getDate().format(DATE_FORMAT),
+                    event.getTime().format(TIME_FORMAT),
+                    event.getDuration(),
+                    endTime
+                });
+            }
+            buildEventsByDateMap();
+            refreshCalendar();
+            refreshViewSummary();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Unable to refresh events: " + ex.getMessage());
         }
-        buildEventsByDateMap();
-        refreshCalendar();
     }
 
     private void updateStats() {
@@ -897,6 +1070,7 @@ public class DashboardGUI extends JFrame {
             nextEventLabel.setFont(FONT_STAT);
             nextEventLabel.setText("—");
         }
+        refreshViewSummary();
     }
 
     private void startClock() {
@@ -985,6 +1159,7 @@ public class DashboardGUI extends JFrame {
                 if (rs.next()) {
                     Event event = new Event(rs.getInt(1), title, date, time, duration);
                     eventTree.insert(event);
+                    highlightedDates.add(date);
                 }
                 JOptionPane.showMessageDialog(this, "✅ Event added successfully!");
                 refreshEventTable();
@@ -1098,6 +1273,14 @@ public class DashboardGUI extends JFrame {
             busiest != null ? busiest.format(DATE_FORMAT) : "N/A",
             busiest != null ? dayCount.get(busiest) : 0,
             eventTree.getHeight()), "Statistics", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void refreshViewSummary() {
+        if (eventSummaryLabel == null) return;
+        int total = eventTree.size();
+        long todayCount = eventTree.inorder().stream().filter(e -> e.getDate().equals(LocalDate.now())).count();
+        eventSummaryLabel.setText(String.format("%d events total · %d today · %s", total, todayCount,
+            todayCount == 0 ? "No meetings today" : "Keep the momentum."));
     }
 
     private void logout() {

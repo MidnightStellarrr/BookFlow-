@@ -28,14 +28,16 @@ public class RegisterGUI extends JFrame {
     private static final Color WHITE_FAINT   = new Color(255, 255, 255, 90);
     private static final Color ACCENT        = new Color(0xA78BFA);
     private static final Color ACCENT_BRIGHT = new Color(0xC4B5FD);
-    private static final Color BTN_FILL      = new Color(255, 255, 255, 245);
+    private static final Color BTN_FILL      = new Color(0x7C3AED);
     private static final Color DANGER        = new Color(0xFF6B6B);
 
     private static final int[][] STARS = generateStars(120);
 
     public RegisterGUI() {
         setTitle("ARC. — Register");
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setSize(1080, 720);
+        setMinimumSize(new Dimension(1080, 720));
+        setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -338,8 +340,8 @@ public class RegisterGUI extends JFrame {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 if (getModel().isRollover()) {
                     g2.setPaint(new GradientPaint(
-                        0, 0, new Color(220, 215, 255),
-                        getWidth(), getHeight(), new Color(200, 190, 255)));
+                        0, 0, new Color(0xA78BFA),
+                        getWidth(), getHeight(), new Color(0x6D28D9)));
                 } else {
                     g2.setColor(BTN_FILL);
                 }
@@ -349,7 +351,7 @@ public class RegisterGUI extends JFrame {
             }
         };
         btn.setFont(new Font("Segoe UI", Font.BOLD, 15));
-        btn.setForeground(new Color(0x1E0A4B));
+        btn.setForeground(Color.WHITE);
         btn.setPreferredSize(new Dimension(0, 52));
         btn.setContentAreaFilled(false);
         btn.setBorderPainted(false);
