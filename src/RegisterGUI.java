@@ -239,9 +239,16 @@ public class RegisterGUI extends JFrame {
             inputRow.add(f, BorderLayout.CENTER);
 
             // Eye toggle
-            JLabel eye = new JLabel("◎");
-            eye.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-            eye.setForeground(WHITE_FAINT);
+            JLabel eye = new JLabel();
+            ImageIcon seeIcon = loadIcon("src/images/see_password.png", 18, 18);
+            if (seeIcon != null) {
+                eye.setIcon(seeIcon);
+            } else {
+                eye.setText("◎");
+                eye.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+                eye.setForeground(WHITE_FAINT);
+            }
+            eye.setOpaque(false);
             eye.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             final JPasswordField target = f;
             eye.addMouseListener(new MouseAdapter() {
@@ -249,10 +256,10 @@ public class RegisterGUI extends JFrame {
                 @Override public void mouseClicked(MouseEvent e) {
                     vis = !vis;
                     target.setEchoChar(vis ? (char)0 : '•');
-                    eye.setText(vis ? "◉" : "◎");
+                    if (seeIcon == null) eye.setText(vis ? "◉" : "◎");
                 }
-                @Override public void mouseEntered(MouseEvent e) { eye.setForeground(ACCENT_BRIGHT); }
-                @Override public void mouseExited (MouseEvent e) { eye.setForeground(WHITE_FAINT); }
+                @Override public void mouseEntered(MouseEvent e) { if (seeIcon == null) eye.setForeground(ACCENT_BRIGHT); }
+                @Override public void mouseExited (MouseEvent e) { if (seeIcon == null) eye.setForeground(WHITE_FAINT); }
             });
             inputRow.add(eye, BorderLayout.EAST);
         } else {
@@ -329,6 +336,16 @@ public class RegisterGUI extends JFrame {
                 if (f.getText().isEmpty()) { f.setText(ph); f.setForeground(WHITE_FAINT); }
             }
         });
+    }
+
+    private ImageIcon loadIcon(String path, int width, int height) {
+        try {
+            ImageIcon icon = new ImageIcon(path);
+            Image img = icon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
+            return new ImageIcon(img);
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     // ── Create Account button ─────────────────────────────────────────────────

@@ -146,14 +146,10 @@ public class DashboardGUI extends JFrame {
         sidebar.add(Box.createVerticalStrut(20));
 
         // 2. NAVIGATION BUTTONS
-        String[][] navItems = {
-            {"⊞", "Dashboard"},
-            {"◷", "All Events"},
-            {"📊", "Statistics"},
-        };
+        String[] navItems = {"Dashboard", "All Events", "Statistics"};
         
-        for (String[] item : navItems) {
-            JPanel btn = makeSidebarButton(item[0], item[1]);
+        for (String label : navItems) {
+            JPanel btn = makeSidebarButton(label);
             sidebar.add(btn);
             sidebar.add(Box.createVerticalStrut(4));
         }
@@ -217,9 +213,15 @@ public class DashboardGUI extends JFrame {
         logoutPanel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         logoutPanel.setMaximumSize(new Dimension(210, 44));
         
-        JLabel logoutIcon = new JLabel("🚪");
-        logoutIcon.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        logoutIcon.setForeground(SIDEBAR_TEXT);
+        JLabel logoutIcon = new JLabel();
+        ImageIcon icon = loadIcon("src/images/logout.png", 18, 18);
+        if (icon != null) {
+            logoutIcon.setIcon(icon);
+        } else {
+            logoutIcon.setText("🚪");
+            logoutIcon.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+            logoutIcon.setForeground(SIDEBAR_TEXT);
+        }
         
         JLabel logoutText = new JLabel("Logout");
         logoutText.setFont(FONT_BODY);
@@ -246,21 +248,16 @@ public class DashboardGUI extends JFrame {
         return logoutPanel;
     }
 
-    private JPanel makeSidebarButton(String icon, String label) {
+    private JPanel makeSidebarButton(String label) {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 18, 10));
         panel.setOpaque(false);
         panel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         panel.setMaximumSize(new Dimension(210, 44));
 
-        JLabel iconLbl = new JLabel(icon);
-        iconLbl.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        iconLbl.setForeground(SIDEBAR_TEXT);
-
         JLabel textLbl = new JLabel(label);
         textLbl.setFont(FONT_BODY);
         textLbl.setForeground(SIDEBAR_TEXT);
 
-        panel.add(iconLbl);
         panel.add(textLbl);
 
         panel.addMouseListener(new MouseAdapter() {
@@ -444,9 +441,11 @@ public class DashboardGUI extends JFrame {
         headerPanel.setBackground(CARD_BG);
         headerPanel.setBorder(BorderFactory.createEmptyBorder(12, 12, 8, 12));
         
-        JButton prevMonthBtn = new JButton("◀");
-        prevMonthBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        JButton prevMonthBtn = new JButton();
+        prevMonthBtn.setIcon(loadIcon("src/images/left arrow.png", 18, 18));
         prevMonthBtn.setBackground(CARD_BG);
+        prevMonthBtn.setOpaque(false);
+        prevMonthBtn.setContentAreaFilled(false);
         prevMonthBtn.setBorder(BorderFactory.createLineBorder(CARD_BORDER));
         prevMonthBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         prevMonthBtn.addActionListener(e -> changeMonth(-1));
@@ -456,9 +455,11 @@ public class DashboardGUI extends JFrame {
         monthYearLabel.setForeground(TEXT_PRIMARY);
         monthYearLabel.setHorizontalAlignment(SwingConstants.CENTER);
         
-        JButton nextMonthBtn = new JButton("▶");
-        nextMonthBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        JButton nextMonthBtn = new JButton();
+        nextMonthBtn.setIcon(loadIcon("src/images/right arrow.png", 18, 18));
         nextMonthBtn.setBackground(CARD_BG);
+        nextMonthBtn.setOpaque(false);
+        nextMonthBtn.setContentAreaFilled(false);
         nextMonthBtn.setBorder(BorderFactory.createLineBorder(CARD_BORDER));
         nextMonthBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         nextMonthBtn.addActionListener(e -> changeMonth(1));
@@ -675,8 +676,8 @@ public class DashboardGUI extends JFrame {
         totalEventsLabel = new JLabel("0");
         nextEventLabel   = new JLabel("—");
 
-        row.add(buildStatCard("Total Events", totalEventsLabel, "◷", new Color(0x3B1F8C), new Color(0xC4B5FD)));
-        row.add(buildStatCard("Next Event",   nextEventLabel,   "⊞", new Color(0x5B3EEB), new Color(0xFBCFE8)));
+        row.add(buildStatCard("Total Events", totalEventsLabel, "src/images/total events.png", new Color(0x3B1F8C), new Color(0xC4B5FD)));
+        row.add(buildStatCard("Next Event",   nextEventLabel,   "src/images/next event.png", new Color(0x5B3EEB), new Color(0xFBCFE8)));
         return row;
     }
 
@@ -726,7 +727,7 @@ public class DashboardGUI extends JFrame {
         return card;
     }
 
-    private JPanel buildStatCard(String title, JLabel valueLabel, String icon, Color bgColor, Color iconColor) {
+    private JPanel buildStatCard(String title, JLabel valueLabel, String iconPath, Color bgColor, Color iconColor) {
         JPanel card = new JPanel(new BorderLayout(10, 6));
         card.setBackground(CARD_BG);
         card.setBorder(BorderFactory.createCompoundBorder(
@@ -734,12 +735,19 @@ public class DashboardGUI extends JFrame {
             BorderFactory.createEmptyBorder(12, 14, 12, 14)
         ));
 
-        JLabel iconLbl = new JLabel(icon, SwingConstants.CENTER);
-        iconLbl.setFont(new Font("Segoe UI", Font.BOLD, 15));
-        iconLbl.setForeground(iconColor);
+        JLabel iconLbl = new JLabel();
+        ImageIcon icon = loadIcon(iconPath, 34, 34);
+        if (icon != null) {
+            iconLbl.setIcon(icon);
+        } else {
+            iconLbl.setText("?");
+            iconLbl.setFont(new Font("Segoe UI", Font.BOLD, 15));
+            iconLbl.setForeground(iconColor);
+        }
+        iconLbl.setHorizontalAlignment(SwingConstants.CENTER);
         iconLbl.setBackground(bgColor);
         iconLbl.setOpaque(true);
-        iconLbl.setPreferredSize(new Dimension(36, 36));
+        iconLbl.setPreferredSize(new Dimension(40, 40));
 
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         left.setOpaque(false);
@@ -1040,6 +1048,16 @@ private JButton makeSecondaryButton(String text) {
         String[] parts = name.trim().split("\\s+");
         if (parts.length == 1) return parts[0].substring(0, Math.min(2, parts[0].length())).toUpperCase();
         return (parts[0].charAt(0) + "" + parts[1].charAt(0)).toUpperCase();
+    }
+
+    private ImageIcon loadIcon(String path, int width, int height) {
+        try {
+            ImageIcon icon = new ImageIcon(path);
+            Image img = icon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
+            return new ImageIcon(img);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private void refreshEventTable() {

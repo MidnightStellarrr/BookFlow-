@@ -278,24 +278,38 @@ public class LoginGUI extends JFrame {
             style(passwordField, "Enter your password");
             row.add(passwordField, BorderLayout.CENTER);
 
-            JLabel eye = new JLabel("◎");
-            eye.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-            eye.setForeground(WHITE_FAINT);
+            JLabel icon = new JLabel();
+            ImageIcon passIcon = loadIcon("src/images/password_white.png", 18, 18);
+            if (passIcon != null) icon.setIcon(passIcon);
+            icon.setOpaque(false);
+            row.add(icon, BorderLayout.WEST);
+
+            JLabel eye = new JLabel();
+            ImageIcon seeIcon = loadIcon("src/images/see_password.png", 18, 18);
+            if (seeIcon != null) eye.setIcon(seeIcon);
+            else {
+                eye.setText("◎");
+                eye.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+            }
+            eye.setOpaque(false);
             eye.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            eye.setToolTipText("Show / hide password");
             eye.addMouseListener(new MouseAdapter() {
                 boolean visible = false;
                 @Override public void mouseClicked(MouseEvent e) {
                     visible = !visible;
                     passwordField.setEchoChar(visible ? (char)0 : '•');
-                    eye.setText(visible ? "◉" : "◎");
                 }
-                @Override public void mouseEntered(MouseEvent e) { eye.setForeground(ACCENT_BRIGHT); }
-                @Override public void mouseExited (MouseEvent e) { eye.setForeground(WHITE_FAINT); }
             });
             row.add(eye, BorderLayout.EAST);
         } else {
             usernameField = new JTextField();
             style(usernameField, "Enter your username");
+            JLabel icon = new JLabel();
+            ImageIcon userIcon = loadIcon("src/images/username_icon_white.png", 18, 18);
+            if (userIcon != null) icon.setIcon(userIcon);
+            icon.setOpaque(false);
+            row.add(icon, BorderLayout.WEST);
             row.add(usernameField, BorderLayout.CENTER);
         }
 
@@ -318,6 +332,16 @@ public class LoginGUI extends JFrame {
                 if (f.getText().isEmpty()) { f.setText(ph); f.setForeground(WHITE_FAINT); }
             }
         });
+    }
+
+    private ImageIcon loadIcon(String path, int width, int height) {
+        try {
+            ImageIcon icon = new ImageIcon(path);
+            Image img = icon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
+            return new ImageIcon(img);
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     // ── Remember / Forgot ─────────────────────────────────────────────────────
