@@ -638,6 +638,7 @@ public class DashboardGUI extends JFrame {
     private JPanel buildInsightRow() {
         JPanel row = new JPanel(new GridLayout(1, 2, 14, 0));
         row.setOpaque(false);
+        row.setPreferredSize(new Dimension(0, 150));
         row.add(buildStatsRow());
         row.add(buildDailyNoteCard());
         return row;
@@ -669,6 +670,7 @@ public class DashboardGUI extends JFrame {
     private JPanel buildStatsRow() {
         JPanel row = new JPanel(new GridLayout(1, 2, 14, 0));
         row.setOpaque(false);
+        row.setPreferredSize(new Dimension(0, 150));
 
         totalEventsLabel = new JLabel("0");
         nextEventLabel   = new JLabel("—");
@@ -679,7 +681,7 @@ public class DashboardGUI extends JFrame {
     }
 
     private JPanel buildDailyNoteCard() {
-        JPanel card = new JPanel(new BorderLayout(14, 12)) {
+        JPanel card = new JPanel(new BorderLayout(12, 10)) {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -692,28 +694,29 @@ public class DashboardGUI extends JFrame {
             }
         };
         card.setOpaque(false);
-        card.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
+        card.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        card.setPreferredSize(new Dimension(0, 150));
 
         JLabel header = new JLabel("Note of the Day");
-        header.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        header.setFont(new Font("Segoe UI", Font.BOLD, 15));
         header.setForeground(TEXT_PRIMARY);
 
         noteOfDayLabel = new JLabel("<html><i>" + getDailyNote() + "</i></html>");
         noteOfDayLabel.setFont(FONT_BODY);
         noteOfDayLabel.setForeground(TEXT_DIM);
-        noteOfDayLabel.setBorder(BorderFactory.createEmptyBorder(8, 0, 12, 0));
+        noteOfDayLabel.setBorder(BorderFactory.createEmptyBorder(4, 0, 8, 0));
 
         JLabel prompt = new JLabel("Tonight: schedule one deep-focus session with a violet glow.");
         prompt.setFont(FONT_SMALL);
         prompt.setForeground(TEXT_SECONDARY);
 
         JLabel action = new JLabel("Today’s pulse: " + getDailyPulse());
-        action.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        action.setFont(new Font("Segoe UI", Font.BOLD, 13));
         action.setForeground(ACCENT);
 
         card.add(header, BorderLayout.NORTH);
 
-        JPanel center = new JPanel(new GridLayout(3, 1, 6, 6));
+        JPanel center = new JPanel(new GridLayout(3, 1, 4, 4));
         center.setOpaque(false);
         center.add(noteOfDayLabel);
         center.add(prompt);
@@ -728,15 +731,15 @@ public class DashboardGUI extends JFrame {
         card.setBackground(CARD_BG);
         card.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(CARD_BORDER, 1, true),
-            BorderFactory.createEmptyBorder(16, 18, 16, 18)
+            BorderFactory.createEmptyBorder(12, 14, 12, 14)
         ));
 
         JLabel iconLbl = new JLabel(icon, SwingConstants.CENTER);
-        iconLbl.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        iconLbl.setFont(new Font("Segoe UI", Font.BOLD, 15));
         iconLbl.setForeground(iconColor);
         iconLbl.setBackground(bgColor);
         iconLbl.setOpaque(true);
-        iconLbl.setPreferredSize(new Dimension(40, 40));
+        iconLbl.setPreferredSize(new Dimension(36, 36));
 
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         left.setOpaque(false);
@@ -747,14 +750,14 @@ public class DashboardGUI extends JFrame {
         textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
 
         JLabel titleLbl = new JLabel(title);
-        titleLbl.setFont(FONT_STAT_LBL);
+        titleLbl.setFont(new Font("Segoe UI", Font.PLAIN, 11));
         titleLbl.setForeground(TEXT_SECONDARY);
 
-        valueLabel.setFont(FONT_STAT);
+        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 22));
         valueLabel.setForeground(TEXT_PRIMARY);
 
         textPanel.add(titleLbl);
-        textPanel.add(Box.createVerticalStrut(4));
+        textPanel.add(Box.createVerticalStrut(2));
         textPanel.add(valueLabel);
 
         card.add(left, BorderLayout.WEST);
@@ -789,6 +792,7 @@ public class DashboardGUI extends JFrame {
         eventTable = new JTable(tableModel);
         eventTable.setUI(new javax.swing.plaf.basic.BasicTableUI());
         eventTable.setFont(FONT_BODY);
+        eventTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         eventTable.setRowHeight(36);
         eventTable.setShowGrid(false);
         eventTable.setIntercellSpacing(new Dimension(0, 0));
@@ -841,7 +845,7 @@ public class DashboardGUI extends JFrame {
         allEventsFrame.setLocationRelativeTo(this);
         allEventsFrame.setResizable(false);
 
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
+        JPanel panel = new JPanel(new BorderLayout(12, 12));
         panel.setBorder(BorderFactory.createEmptyBorder(18, 18, 18, 18));
         panel.setBackground(BG_MID);
 
@@ -884,6 +888,10 @@ public class DashboardGUI extends JFrame {
         allEventsTable.setSelectionBackground(new Color(108, 71, 255, 140));
         allEventsTable.setSelectionForeground(Color.WHITE);
         allEventsTable.setOpaque(true);
+        allEventsTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        int[] allWidths = {60, 420, 140, 90, 120, 100};
+        for (int i = 0; i < allWidths.length; i++)
+            allEventsTable.getColumnModel().getColumn(i).setPreferredWidth(allWidths[i]);
 
         JTableHeader th = allEventsTable.getTableHeader();
         th.setUI(new javax.swing.plaf.basic.BasicTableHeaderUI());
@@ -913,17 +921,18 @@ public class DashboardGUI extends JFrame {
 
         JButton closeBtn = new JButton("Close");
         closeBtn.setFont(FONT_BODY);
-        closeBtn.setBackground(new Color(0x8B5CF6));
+        closeBtn.setBackground(new Color(0x5B21B6));
         closeBtn.setForeground(Color.WHITE);
         closeBtn.setOpaque(true);
         closeBtn.setContentAreaFilled(true);
-        closeBtn.setBorderPainted(true);
+        closeBtn.setBorderPainted(false);
         closeBtn.setFocusPainted(false);
-        closeBtn.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(255,255,255,120), 1, true),
-            BorderFactory.createEmptyBorder(10, 18, 10, 18)
-        ));
+        closeBtn.setBorder(BorderFactory.createEmptyBorder(10, 18, 10, 18));
         closeBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        closeBtn.addMouseListener(new MouseAdapter() {
+            @Override public void mouseEntered(MouseEvent e) { closeBtn.setBackground(new Color(0x7C3AED)); }
+            @Override public void mouseExited(MouseEvent e) { closeBtn.setBackground(new Color(0x5B21B6)); }
+        });
         closeBtn.addActionListener(e -> allEventsFrame.dispose());
 
         JPanel footer = new JPanel(new FlowLayout(FlowLayout.RIGHT));
