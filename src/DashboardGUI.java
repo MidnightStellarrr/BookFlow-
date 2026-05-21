@@ -174,6 +174,7 @@ public class DashboardGUI extends JFrame {
         JPanel userPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 14, 14));
         userPanel.setOpaque(false);
         userPanel.setMaximumSize(new Dimension(210, 70));
+        userPanel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         
         JLabel avatar = new JLabel(getInitials(currentUser.getUsername()));
         avatar.setFont(new Font("Segoe UI", Font.BOLD, 13));
@@ -204,6 +205,25 @@ public class DashboardGUI extends JFrame {
         updateBtn.setPreferredSize(new Dimension(28, 28));
         updateBtn.addActionListener(e -> showUpdateProfileDialog());
         userPanel.add(updateBtn);
+        
+        // Make entire profile panel clickable
+        userPanel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                showUpdateProfileDialog();
+            }
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                userPanel.setBackground(new Color(0x5B4FBB));
+                userPanel.setOpaque(true);
+                userPanel.repaint();
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                userPanel.setOpaque(false);
+                userPanel.repaint();
+            }
+        });
         
         return userPanel;
     }
@@ -638,11 +658,45 @@ public class DashboardGUI extends JFrame {
     }
 
     private JPanel buildInsightRow() {
-        JPanel row = new JPanel(new GridLayout(1, 2, 14, 0));
+        JPanel row = new JPanel(new BorderLayout(0, 14));
         row.setOpaque(false);
-        row.setPreferredSize(new Dimension(0, 150));
-        row.add(buildStatsRow());
-        row.add(buildDailyNoteCard());
+        row.setPreferredSize(new Dimension(0, 190));
+
+        JPanel searchPanel = new JPanel(new BorderLayout(8, 0));
+        searchPanel.setOpaque(false);
+        searchPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 16, 0));
+
+        JLabel searchLabel = new JLabel("Search Events");
+        searchLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        searchLabel.setForeground(TEXT_PRIMARY);
+
+        JTextField searchField = new JTextField();
+        searchField.setBackground(new Color(0x1A0E40));
+        searchField.setForeground(TEXT_PRIMARY);
+        searchField.setCaretColor(ACCENT);
+        searchField.setFont(FONT_BODY);
+        searchField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(ACCENT, 1, true),
+            BorderFactory.createEmptyBorder(8, 12, 8, 12)
+        ));
+        searchField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                searchEvents(searchField.getText().trim());
+            }
+        });
+
+        searchPanel.add(searchLabel, BorderLayout.WEST);
+        searchPanel.add(searchField, BorderLayout.CENTER);
+
+        JPanel cardsPanel = new JPanel(new GridLayout(1, 2, 14, 0));
+        cardsPanel.setOpaque(false);
+        cardsPanel.setPreferredSize(new Dimension(0, 150));
+        cardsPanel.add(buildStatsRow());
+        cardsPanel.add(buildDailyNoteCard());
+
+        row.add(searchPanel, BorderLayout.NORTH);
+        row.add(cardsPanel, BorderLayout.CENTER);
         return row;
     }
 
@@ -1168,9 +1222,29 @@ private JButton makeSecondaryButton(String text) {
             LocalTime time = LocalTime.parse(timeField.getText().trim());
             int duration   = (Integer) durationBox.getSelectedItem();
 
-            if (eventTree.checkConflict(new Event(0, title, date, time, duration), duration)) {
-                int confirm = JOptionPane.showConfirmDialog(this, "⚠️ Time conflict detected! Continue anyway?",
-                    "Conflict Warning", JOptionPane.YES_NO_OPTION);
+            // Find conflicting event with details
+            Event conflictingEvent = findConflictingEvent(date, time, duration);
+            if (conflictingEvent != null) {
+                String conflictMsg = String.format(
+                    "⚠️ TIME CONFLICT DETECTED!\n\n" +
+                    "Existing Event:\n" +
+                    "  Title: %s\n" +
+                    "  Date: %s\n" +
+                    "  Time: %s - %s\n\n" +
+                    "Your Event:\n" +
+                    "  Date: %s\n" +
+                    "  Time: %s - %s\n\n" +
+                    "Continue anyway?",
+                    conflictingEvent.getTitle(),
+                    conflictingEvent.getDate().format(DATE_FORMAT),
+                    conflictingEvent.getTime().format(TIME_FORMAT),
+                    conflictingEvent.getEndTime().format(TIME_FORMAT),
+                    date.format(DATE_FORMAT),
+                    time.format(TIME_FORMAT),
+                    time.plusMinutes(duration).format(TIME_FORMAT)
+                );
+                int confirm = JOptionPane.showConfirmDialog(this, conflictMsg,
+                    "Conflict Warning", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
                 if (confirm != JOptionPane.YES_OPTION) return;
             }
 
@@ -1316,5 +1390,64 @@ private JButton makeSecondaryButton(String text) {
         int confirm = JOptionPane.showConfirmDialog(this, "Are you sure you want to logout?",
             "Logout", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) { new LoginGUI().setVisible(true); dispose(); }
+    }
+
+    // ── Search & Conflict Detection ──
+
+    private void searchEvents(String query) {
+        if (tableModel == null || eventTable == null) return;
+        
+        tableModel.setRowCount(0);
+        List<Event> events = eventTree.inorder();
+        
+        if (query.isEmpty()) {
+            // Show all events
+            for (Event event : events) {
+                String endTime = event.getTime() != null ? event.getEndTime().format(TIME_FORMAT) : "—";
+                tableModel.addRow(new Object[]{
+                    event.getId(),
+                    event.getTitle(),
+                    event.getDate().format(DATE_FORMAT),
+                    event.getTime().format(TIME_FORMAT),
+                    event.getDuration(),
+                    endTime
+                });
+            }
+        } else {
+            // Search by title (case-insensitive)
+            String lowerQuery = query.toLowerCase();
+            for (Event event : events) {
+                if (event.getTitle().toLowerCase().contains(lowerQuery)) {
+                    String endTime = event.getTime() != null ? event.getEndTime().format(TIME_FORMAT) : "—";
+                    tableModel.addRow(new Object[]{
+                        event.getId(),
+                        event.getTitle(),
+                        event.getDate().format(DATE_FORMAT),
+                        event.getTime().format(TIME_FORMAT),
+                        event.getDuration(),
+                        endTime
+                    });
+                }
+            }
+        }
+        
+        eventTable.revalidate();
+        eventTable.repaint();
+    }
+
+    private Event findConflictingEvent(LocalDate date, LocalTime time, int duration) {
+        LocalTime endTime = time.plusMinutes(duration);
+        List<Event> events = eventTree.inorder();
+        
+        for (Event event : events) {
+            if (event.getDate().equals(date)) {
+                // Check if times overlap
+                if (!(endTime.compareTo(event.getTime()) <= 0 || 
+                      time.compareTo(event.getEndTime()) >= 0)) {
+                    return event; // Found conflict
+                }
+            }
+        }
+        return null; // No conflict
     }
 }
